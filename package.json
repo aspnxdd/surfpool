@@ -1,0 +1,21 @@
+{
+  "name": "surfpool",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.29.3",
+  "dependencies": {
+    "@meteora-ag/dlmm": "^1.9.4",
+    "@raydium-io/raydium-sdk-v2": "0.2.37-alpha",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
+    "@types/bn.js": "^5.2.0",
+    "bn.js": "^5.2.3"
+  }
+}

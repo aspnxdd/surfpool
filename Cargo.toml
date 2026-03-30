@@ -172,13 +172,13 @@ txtx-core = { version = "0.4.16" }
 txtx-gql = { version = "0.3.10" }
 txtx-supervisor-ui = { version = "0.2.11", default-features = false }
 
-# [patch.crates-io]
+[patch.crates-io]
 # Local
-# txtx-addon-kit = { path = "../txtx/crates/txtx-addon-kit" }
-# txtx-core = { path = "../txtx/crates/txtx-core" }
-# txtx-addon-network-svm = { path = "../txtx/addons/svm/core" }
-# txtx-addon-network-svm-types = { path = "../txtx/addons/svm/types" }
-# txtx-supervisor-ui = { path = "../txtx/crates/txtx-supervisor-ui" }
+txtx-addon-kit = { path = "../txtx/crates/txtx-addon-kit" }
+txtx-core = { path = "../txtx/crates/txtx-core" }
+txtx-addon-network-svm = { path = "../txtx/addons/svm/core" }
+txtx-addon-network-svm-types = { path = "../txtx/addons/svm/types" }
+txtx-supervisor-ui = { path = "../txtx/crates/txtx-supervisor-ui" }
 
 ## Git
 # txtx-addon-kit = { git = "https://github.com/txtx/txtx.git", branch = "main" }
