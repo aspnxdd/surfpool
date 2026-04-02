@@ -6,40 +6,41 @@ addon "svm" {
 action "setup_surfnet" "svm::setup_surfnet" {
   set_account {
     public_key = "3BznENHP5KkRikLZqCLGLTaVGcDBsWDTLjSCbHZD2qTA"
-    patch_raw = [
-      {
-        offset = 8
-        length = 32
-        field_value = "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo"
-        field_type = "pubkey"
-      },
-      {
-        offset = 7960
-        length = 32
-        field_value = "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo"
-        field_type = "pubkey"
-      },
-      {
-        offset = 7936
-        length = 8
-        field_value = 5
-        field_type = "u64"
-      }
-    ]
 
-    patch_idl = [
-      {
+    patch_raw {
+      offset = 8
+      length = 32
+      value = "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo"
+      type = "pubkey"
+    }
+
+    patch_raw { 
+      offset = 7960
+      length = 32
+      value = "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo"
+      type = "pubkey"
+    }
+    
+    patch_raw {  
+      offset = 7936
+      length = 8
+      value = 5
+      type = "u64"
+    }
+    
+
+    patch_idl {
         program_idl = "./idl.json"
         account_name = "PositionV2"
-        field_name = "lb_pair"
-        field_value = "GdkseahYCNJF5gSpb4Pzsmsj6GQL3Zi8AGTEkniSzGAQ"
-      },
-      {
-        program_idl = "./idl.json"
-        account_name = "PositionV2"
-        field_name = "lower_bin_id"
-        field_value = -3333
+        name = "lb_pair"
+        value = "GdkseahYCNJF5gSpb4Pzsmsj6GQL3Zi8AGTEkniSzGAQ"
       }
-    ]
+    patch_idl  {
+        program_idl = "./idl.json"
+        account_name = "PositionV2"
+        name = "lower_bin_id"
+        value = -3333
+      }
+    
   }
 }
