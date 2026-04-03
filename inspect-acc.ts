@@ -22,10 +22,6 @@ function readI32(buf: Buffer, offset: number): number {
   return buf.readInt32LE(offset);
 }
 
-function readU8(buf: Buffer, offset: number): number {
-  return buf[offset];
-}
-
 interface FeeInfo {
   feeXPerTokenComplete: bigint;
   feeYPerTokenComplete: bigint;
