@@ -3,6 +3,11 @@ addon "svm" {
   rpc_api_url = "http://localhost:8899"
 }
 
+variable "program" {
+    description = "The program to to invoke."
+    value = svm::get_program_from_anchor_project("lb_clmm")
+}
+
 action "setup_surfnet" "svm::setup_surfnet" {
   set_account {
     public_key = "3BznENHP5KkRikLZqCLGLTaVGcDBsWDTLjSCbHZD2qTA"
@@ -30,16 +35,16 @@ action "setup_surfnet" "svm::setup_surfnet" {
     
 
     patch_idl {
-        program_idl = "./idl.json"
+        program_idl = variable.program.idl
         account_name = "PositionV2"
         name = "lb_pair"
         value = "GdkseahYCNJF5gSpb4Pzsmsj6GQL3Zi8AGTEkniSzGAQ"
       }
     patch_idl  {
-        program_idl = "./idl.json"
+        program_idl = variable.program.idl
         account_name = "PositionV2"
         name = "lower_bin_id"
-        value = -3333
+        value = -3332
       }
     
   }
