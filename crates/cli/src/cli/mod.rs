@@ -190,25 +190,14 @@ pub struct StartSimnet {
 
 #[derive(Parser, PartialEq, Clone, Debug)]
 pub struct StopCommand {
-    /// RPC host of the running Surfpool instance.
-    #[arg(
-        long = "host",
-        short = 'o',
-        default_value = DEFAULT_NETWORK_HOST,
-        value_name = "HOST"
-    )]
-    pub host: String,
-    /// RPC port of the running Surfpool instance.
-    #[arg(
-        long = "port",
-        short = 'p',
-        default_value_t = DEFAULT_RPC_PORT,
-        value_name = "PORT"
-    )]
-    pub port: u16,
     /// Full RPC URL of the running Surfpool instance.
-    #[arg(long = "rpc-url", short = 'u', value_name = "RPC_URL")]
-    pub rpc_url: Option<String>,
+    #[arg(
+        long = "rpc-url",
+        short = 'u',
+        default_value_t = format!("http://{DEFAULT_NETWORK_HOST}:{DEFAULT_RPC_PORT}"),
+        value_name = "RPC_URL"
+    )]
+    pub rpc_url: String,
 }
 
 #[derive(Args, PartialEq, Clone, Debug)]
@@ -989,7 +978,7 @@ fn handle_command(opts: Opts, ctx: &Context) -> Result<(), String> {
 }
 
 async fn handle_stop_command(cmd: StopCommand) -> Result<(), String> {
-    let rpc_url = stop_rpc_url(&cmd);
+    let rpc_url = cmd.rpc_url.trim_end_matches('/').to_string();
     let response = reqwest::Client::new()
         .post(&rpc_url)
         .json(&serde_json::json!({
@@ -1017,13 +1006,6 @@ async fn handle_stop_command(cmd: StopCommand) -> Result<(), String> {
     parse_stop_response(&body)?;
     println!("Surfpool stop requested");
     Ok(())
-}
-
-fn stop_rpc_url(cmd: &StopCommand) -> String {
-    match &cmd.rpc_url {
-        Some(rpc_url) => rpc_url.trim_end_matches('/').to_string(),
-        None => format!("http://{}:{}", cmd.host, cmd.port),
-    }
 }
 
 fn parse_stop_response(body: &str) -> Result<(), String> {
@@ -1300,32 +1282,16 @@ mod tests {
         let cmd = parse_stop(&["surfpool", "stop"]);
 
         assert_eq!(
-            stop_rpc_url(&cmd),
+            cmd.rpc_url,
             format!("http://{DEFAULT_NETWORK_HOST}:{DEFAULT_RPC_PORT}")
         );
     }
 
     #[test]
-    fn stop_parser_accepts_custom_host_and_port() {
-        let cmd = parse_stop(&["surfpool", "stop", "--host", "0.0.0.0", "--port", "8898"]);
+    fn stop_parser_accepts_custom_rpc_url() {
+        let cmd = parse_stop(&["surfpool", "stop", "--rpc-url", "http://localhost:1234/"]);
 
-        assert_eq!(stop_rpc_url(&cmd), "http://0.0.0.0:8898");
-    }
-
-    #[test]
-    fn stop_parser_prefers_rpc_url() {
-        let cmd = parse_stop(&[
-            "surfpool",
-            "stop",
-            "--host",
-            "0.0.0.0",
-            "--port",
-            "8898",
-            "--rpc-url",
-            "http://localhost:1234/",
-        ]);
-
-        assert_eq!(stop_rpc_url(&cmd), "http://localhost:1234");
+        assert_eq!(cmd.rpc_url, "http://localhost:1234/");
     }
 
     #[test]
