@@ -1023,6 +1023,7 @@ fn parse_stop_response(body: &str) -> Result<(), String> {
     }
 
     if value.get("jsonrpc").and_then(|version| version.as_str()) != Some("2.0")
+        || value.get("id").and_then(|id| id.as_i64()) != Some(1)
         || value.get("result").is_none()
     {
         return Err(format!(
