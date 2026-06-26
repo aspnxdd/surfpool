@@ -1022,6 +1022,14 @@ fn parse_stop_response(body: &str) -> Result<(), String> {
         return Err(format!("Surfpool RPC returned error: {error}"));
     }
 
+    if value.get("jsonrpc").and_then(|version| version.as_str()) != Some("2.0")
+        || value.get("result").is_none()
+    {
+        return Err(format!(
+            "Surfpool RPC returned an invalid JSON-RPC response: {body}"
+        ));
+    }
+
     Ok(())
 }
 
@@ -1318,5 +1326,26 @@ mod tests {
         let err = parse_stop_response("not json").expect_err("invalid json should fail");
 
         assert!(err.contains("failed to parse Surfpool RPC response"));
+    }
+
+    #[test]
+    fn parse_stop_response_rejects_non_rpc_json() {
+        let err = parse_stop_response(r#"{"status":"ok"}"#).expect_err("non-RPC json should fail");
+
+        assert_eq!(
+            err,
+            r#"Surfpool RPC returned an invalid JSON-RPC response: {"status":"ok"}"#
+        );
+    }
+
+    #[test]
+    fn parse_stop_response_rejects_rpc_response_without_result() {
+        let err = parse_stop_response(r#"{"jsonrpc":"2.0","id":1}"#)
+            .expect_err("RPC response without result should fail");
+
+        assert_eq!(
+            err,
+            r#"Surfpool RPC returned an invalid JSON-RPC response: {"jsonrpc":"2.0","id":1}"#
+        );
     }
 }
