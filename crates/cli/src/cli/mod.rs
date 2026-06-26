@@ -979,7 +979,10 @@ fn handle_command(opts: Opts, ctx: &Context) -> Result<(), String> {
 
 async fn handle_stop_command(cmd: StopCommand) -> Result<(), String> {
     let rpc_url = cmd.rpc_url.trim_end_matches('/').to_string();
-    let response = reqwest::Client::new()
+    let response = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+        .map_err(|e| format!("failed to create Surfpool RPC client: {e}"))?
         .post(&rpc_url)
         .json(&serde_json::json!({
             "jsonrpc": "2.0",
