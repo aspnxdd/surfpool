@@ -190,14 +190,25 @@ pub struct StartSimnet {
 
 #[derive(Parser, PartialEq, Clone, Debug)]
 pub struct StopCommand {
+    /// RPC host of the running Surfpool instance. Defaults to localhost.
+    #[arg(long = "host", short = 'o', value_name = "HOST")]
+    pub host: Option<String>,
+    /// RPC port of the running Surfpool instance. Required unless --rpc-url is provided.
+    #[arg(
+        long = "port",
+        short = 'p',
+        required_unless_present = "rpc_url",
+        value_name = "PORT"
+    )]
+    pub port: Option<u16>,
     /// Full RPC URL of the running Surfpool instance.
     #[arg(
         long = "rpc-url",
         short = 'u',
-        default_value_t = format!("http://{DEFAULT_NETWORK_HOST}:{DEFAULT_RPC_PORT}"),
+        conflicts_with_all = ["host", "port"],
         value_name = "RPC_URL"
     )]
-    pub rpc_url: String,
+    pub rpc_url: Option<String>,
 }
 
 #[derive(Args, PartialEq, Clone, Debug)]
@@ -978,7 +989,7 @@ fn handle_command(opts: Opts, ctx: &Context) -> Result<(), String> {
 }
 
 async fn handle_stop_command(cmd: StopCommand) -> Result<(), String> {
-    let rpc_url = cmd.rpc_url.trim_end_matches('/').to_string();
+    let rpc_url = get_stop_rpc_url(&cmd);
     let response = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(10))
         .build()
@@ -1009,6 +1020,18 @@ async fn handle_stop_command(cmd: StopCommand) -> Result<(), String> {
     parse_stop_response(&body)?;
     println!("Surfpool stop requested");
     Ok(())
+}
+
+fn get_stop_rpc_url(cmd: &StopCommand) -> String {
+    if let Some(rpc_url) = &cmd.rpc_url {
+        return rpc_url.trim_end_matches('/').to_string();
+    }
+
+    let host = cmd.host.as_deref().unwrap_or(DEFAULT_NETWORK_HOST);
+    let port = cmd
+        .port
+        .expect("--port is required when --rpc-url is absent");
+    format!("http://{host}:{port}")
 }
 
 fn parse_stop_response(body: &str) -> Result<(), String> {
@@ -1290,20 +1313,50 @@ mod tests {
     }
 
     #[test]
-    fn stop_parser_uses_default_rpc_endpoint() {
-        let cmd = parse_stop(&["surfpool", "stop"]);
+    fn stop_parser_requires_an_explicit_target() {
+        let err = Opts::try_parse_from(["surfpool", "stop"])
+            .expect_err("stop should require a port or RPC URL");
+
+        assert_eq!(err.kind(), clap::error::ErrorKind::MissingRequiredArgument);
+    }
+
+    #[test]
+    fn stop_parser_uses_default_host_with_port() {
+        let cmd = parse_stop(&["surfpool", "stop", "--port", "8899"]);
 
         assert_eq!(
-            cmd.rpc_url,
+            get_stop_rpc_url(&cmd),
             format!("http://{DEFAULT_NETWORK_HOST}:{DEFAULT_RPC_PORT}")
         );
+    }
+
+    #[test]
+    fn stop_parser_accepts_custom_host_and_port() {
+        let cmd = parse_stop(&["surfpool", "stop", "--host", "0.0.0.0", "--port", "8898"]);
+
+        assert_eq!(get_stop_rpc_url(&cmd), "http://0.0.0.0:8898");
     }
 
     #[test]
     fn stop_parser_accepts_custom_rpc_url() {
         let cmd = parse_stop(&["surfpool", "stop", "--rpc-url", "http://localhost:1234/"]);
 
-        assert_eq!(cmd.rpc_url, "http://localhost:1234/");
+        assert_eq!(get_stop_rpc_url(&cmd), "http://localhost:1234");
+    }
+
+    #[test]
+    fn stop_parser_rejects_mixed_target_options() {
+        let err = Opts::try_parse_from([
+            "surfpool",
+            "stop",
+            "--port",
+            "8899",
+            "--rpc-url",
+            "http://localhost:1234",
+        ])
+        .expect_err("RPC URL and host/port options should conflict");
+
+        assert_eq!(err.kind(), clap::error::ErrorKind::ArgumentConflict);
     }
 
     #[test]
